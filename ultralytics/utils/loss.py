@@ -14,7 +14,6 @@ from ultralytics.utils.torch_utils import autocast
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
 
-
 class VarifocalLoss(nn.Module):
     """
     Varifocal loss by Zhang et al.
@@ -189,6 +188,10 @@ class KeypointLoss(nn.Module):
         # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
         e = d / ((2 * self.sigmas).pow(2) * (area + 1e-9) * 2)  # from cocoeval
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
+
+
+class MFLoss(nn.Module):
+    def __init__(self):
 
 
 class v8DetectionLoss:
