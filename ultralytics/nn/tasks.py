@@ -12,7 +12,7 @@ import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
-    AIFI,
+    AIFI, GSConv, GSConvE, GSConvE2, GSBottleneckC, GSBottleneck, GSConvns, VoVGSCSPC, VoVGSCSP,
     C1,
     C2,
     C2PSA,

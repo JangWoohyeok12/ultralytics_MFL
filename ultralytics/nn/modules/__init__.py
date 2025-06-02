@@ -61,7 +61,7 @@ from .block import (
     TorchVision,
 )
 from .conv import (
-    CBAM,
+    CBAM, GSConv, GSConvE, GSConvE2, GSBottleneckC, GSBottleneck, GSConvns, VoVGSCSPC, VoVGSCSP,
     ChannelAttention,
     Concat,
     Conv,
