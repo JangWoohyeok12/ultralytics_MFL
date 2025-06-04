@@ -26,78 +26,29 @@ __all__ = (
 )
 
 
-def autopad(k, p=None, d=1):  # kernel, padding, dilation
-    """Pad to 'same' shape outputs."""
-    if d > 1:
-        k = d * (k - 1) + 1 if isinstance(k, int) else [d * (x - 1) + 1 for x in k]  # actual kernel-size
+def autopad(k, p=None):  # kernel, padding
+    # Pad to 'same'
     if p is None:
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
 
 
 class Conv(nn.Module):
-    """
-    Standard convolution module with batch normalization and activation.
-
-    Attributes:
-        conv (nn.Conv2d): Convolutional layer.
-        bn (nn.BatchNorm2d): Batch normalization layer.
-        act (nn.Module): Activation function layer.
-        default_act (nn.Module): Default activation function (SiLU).
-    """
-
-    default_act = nn.SiLU()  # default activation
-
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
-        """
-        Initialize Conv layer with given parameters.
-
-        Args:
-            c1 (int): Number of input channels.
-            c2 (int): Number of output channels.
-            k (int): Kernel size.
-            s (int): Stride.
-            p (int, optional): Padding.
-            g (int): Groups.
-            d (int): Dilation.
-            act (bool | nn.Module): Activation function.
-        """
+    # C_B_M
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):
         super().__init__()
-        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p), groups=g, bias=False)
         self.bn = nn.BatchNorm2d(c2)
-        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        self.act = nn.Mish() if act else (act if isinstance(act, nn.Module) else nn.Identity())
 
     def forward(self, x):
-        """
-        Apply convolution, batch normalization and activation to input tensor.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor.
-        """
         return self.act(self.bn(self.conv(x)))
 
     def forward_fuse(self, x):
-        """
-        Apply convolution and activation without batch normalization.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor.
-        """
         return self.act(self.conv(x))
 
-
 class GSConvE2(nn.Module):
-    '''
-    GSConv enhancement for representation learning: generate various receptive-fields and
-    texture-features only in one Conv module
-    https://github.com/AlanLi1997/rethinking-fpn
-    '''
+
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         super().__init__()
         c_ = c2 // 4
@@ -120,11 +71,7 @@ class GSConvE2(nn.Module):
 
 
 class GSConvE(nn.Module):
-    '''
-    GSConv enhancement for representation learning: generate various receptive-fields and
-    texture-features only in one Conv module
-    # GSConvE1 https://github.com/AlanLi1997/rethinking-fpn
-    '''
+
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         super().__init__()
         c_ = c2 // 2
@@ -146,7 +93,7 @@ class GSConvE(nn.Module):
 
 
 class GSConv(nn.Module):
-    # GSConv https://github.com/AlanLi1997/slim-neck-by-gsconv
+
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         super().__init__()
         c_ = c2 // 2
@@ -163,7 +110,7 @@ class GSConv(nn.Module):
 
 
 class GSConvns(GSConv):
-    # GSConv with a normative-shuffle https://github.com/AlanLi1997/slim-neck-by-gsconv
+
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         super().__init__(c1, c2, k, s, p, g, d, act)
         c_ = c2 // 2
@@ -177,7 +124,7 @@ class GSConvns(GSConv):
 
 
 class GSBottleneck(nn.Module):
-    # GS Bottleneck https://github.com/AlanLi1997/slim-neck-by-gsconv
+
     def __init__(self, c1, c2, k=3, s=1):
         super().__init__()
         c_ = c2 // 2
@@ -192,7 +139,7 @@ class GSBottleneck(nn.Module):
 
 
 class GSBottleneckC(GSBottleneck):
-    # cheap GS Bottleneck https://github.com/AlanLi1997/slim-neck-by-gsconv
+
     def __init__(self, c1, c2, k=3, s=1):
         super().__init__(c1, c2, k, s)
         self.shortcut = DWConv(c1, c2, 3, 1, act=False)
@@ -227,15 +174,6 @@ class VoVGSCSPC(VoVGSCSP):
 
 
 class Conv2(Conv):
-    """
-    Simplified RepConv module with Conv fusing.
-
-    Attributes:
-        conv (nn.Conv2d): Main 3x3 convolutional layer.
-        cv2 (nn.Conv2d): Additional 1x1 convolutional layer.
-        bn (nn.BatchNorm2d): Batch normalization layer.
-        act (nn.Module): Activation function layer.
-    """
 
     def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, act=True):
         """
@@ -327,9 +265,8 @@ class LightConv(nn.Module):
 
 
 class DWConv(Conv):
-    """Depth-wise convolution module."""
-
-    def __init__(self, c1, c2, k=1, s=1, d=1, act=True):
+    # Depth-wise convolution class
+    def __init__(self, c1, c2, k=1, s=1, act=True):  # ch_in, ch_out, kernel, stride, padding, groups
         """
         Initialize depth-wise convolution with given parameters.
 
@@ -338,11 +275,9 @@ class DWConv(Conv):
             c2 (int): Number of output channels.
             k (int): Kernel size.
             s (int): Stride.
-            d (int): Dilation.
             act (bool | nn.Module): Activation function.
         """
-        super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), d=d, act=act)
-
+        super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), act=act)
 
 class DWConvTranspose2d(nn.ConvTranspose2d):
     """Depth-wise transpose convolution module."""
