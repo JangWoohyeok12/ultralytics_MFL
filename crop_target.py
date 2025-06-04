@@ -121,7 +121,13 @@ while True:
                 cv2.imwrite(f"restored_{frame_count}_{i}.jpg", restored_bgr)
             except:
                 continue
-        
+
+        # 복원 후 재인식
+        try:
+            
+        except:
+            continue
+    
     # Quit
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
