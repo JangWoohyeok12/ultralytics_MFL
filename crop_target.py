@@ -4,15 +4,10 @@ import torch
 from torchvision import transforms
 from PIL import Image
 
-# ----------------- 전처리 -----------------
-transform = transforms.Compose([
-    transforms.Resize((256, 256)),
-    transforms.ToTensor()
-])
-
 # ----------------- 모델 로딩 -----------------
 # YOLO 모델
 model = YOLO('yolov8n.pt')
+
 
 # UNet 모델
 # unet_model =
@@ -87,12 +82,6 @@ while True:
         # 손상된 경우
         if is_damaged == 'damaged_sign':
             try:
-                # CNN 입력을 위해 포멧 변환 (BGR to RGB 후 PIL.Image 객체로 변환)
-                img_pil = Image.fromarray(cv2.cvtColor(crop_object, cv2.COLOR_BGR2RGB))
-        
-                # 이미지 사이즈 재변환 & 텐서로 변환 & batch dimension 추가
-                input_tensor = transform(img_pil).unsqueeze(0)
-                
                 with torch.no_grad():
                     restored = unet_model(input_tensor)
                     
