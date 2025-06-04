@@ -85,22 +85,17 @@ while True:
             print("crop 실패")
             continue
 
-        try:
-            # CNN 입력을 위해 포멧 변환 (BGR to RGB 후 PIL.Image 객체로 변환)
-            img_pil = Image.fromarray(cv2.cvtColor(crop_object, cv2.COLOR_BGR2RGB))
-    
-            # Resize an Image & Convert to Tensor & Add batch dimension
-            input_tensor = transform(img_pil).unsqueeze(0)
-
-        except:
-            print("전처리 실패")
-            continue
-
         is_damaged = class[i]
 
         # 손상된 경우
         if is_damaged == 'damaged_sign':
             try:
+                # CNN 입력을 위해 포멧 변환 (BGR to RGB 후 PIL.Image 객체로 변환)
+                img_pil = Image.fromarray(cv2.cvtColor(crop_object, cv2.COLOR_BGR2RGB))
+        
+                # Resize an Image & Convert to Tensor & Add batch dimension
+                input_tensor = transform(img_pil).unsqueeze(0)
+                
                 with torch.no_grad():
                     restored = unet_model(input_tensor)
                     
