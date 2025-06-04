@@ -11,33 +11,28 @@ transform = transforms.Compose([
 ])
 
 # ----------------- 모델 로딩 -----------------
-# Load YOLO model
+# YOLO 모델
 model = YOLO('yolov8n.pt')
 
-# Load Classification CNN Model
-# cnn_model = 
-
-# CNN Input Preprocessing 
-
-# Load UNet
+# UNet 모델
 # unet_model =
 
 # ----------------- 설정 -----------------
-# 신뢰도 threshold 설정
+# threshold 설정
 CONF_THRESH = 0.5  # 50% 이상 확신한 탐지만 사용
 
-# n 프레임마다 추론
+# 프레임 n개마다 추론
 SKIP_FRAME = 2
 
 # ----------------- 실시간 영상 -----------------
-# Video
+# 영상
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise RuntimeError("카메라를 열 수 없습니다.")
 
 frame_count = 0
 
-# processing
+# Processing
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -52,31 +47,32 @@ while True:
             break
         continue
     
-    # Perform inference on an image
+    # 영상 프레임으로 추론
     results = model(frame)
     
-    # Extract bounding boxes
+    # bounding box 추출 
     boxes = results[0].boxes.xyxy.tolist()
     
-    # Extract conf
+    # confidence 추출 
     confs = results[0].boxes.conf.tolist()
     
-    # Extract class
+    # class 추출 
     classes = results[0].boxes.cls.tolist()
 
-    # Iterate through the bounding boxes
+    # 프레임 속 bounding box 순회
     for i, box in enumerate(boxes):
-        
+
+        # bouding box의 conf
         score = confs[i]
 
-        # less than 0.5 
+        # conf가 0.5보다 낮으면
         if score < CONF_THRESH:
             continue  # 낮은 신뢰도 박스는 건너뜀
 
         try:
             x1, y1, x2, y2 = box
     
-            # Crop the object using the bounding box coordinates
+            # bounding box crop
             crop_object = frame[int(y1):int(y2), int(x1):int(x2)]
             if crop_object.size == 0 or crop_object.shape[0] < 10 or crop_object.shape[1] < 10:
                 continue
@@ -85,6 +81,7 @@ while True:
             print("crop 실패")
             continue
 
+        # bouding box의 클래스 
         is_damaged = class[i]
 
         # 손상된 경우
@@ -93,7 +90,7 @@ while True:
                 # CNN 입력을 위해 포멧 변환 (BGR to RGB 후 PIL.Image 객체로 변환)
                 img_pil = Image.fromarray(cv2.cvtColor(crop_object, cv2.COLOR_BGR2RGB))
         
-                # Resize an Image & Convert to Tensor & Add batch dimension
+                # 이미지 사이즈 재변환 & 텐서로 변환 & batch dimension 추가
                 input_tensor = transform(img_pil).unsqueeze(0)
                 
                 with torch.no_grad():
