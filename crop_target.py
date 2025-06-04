@@ -61,6 +61,9 @@ while True:
     # Extract conf
     confs = results[0].boxes.conf.tolist()
 
+    # Extract class
+    classes = results[0].boxes.cls.tolist()
+
     # Iterate through the bounding boxes
     for i, box in enumerate(boxes):
         
