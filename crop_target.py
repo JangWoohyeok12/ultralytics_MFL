@@ -54,13 +54,13 @@ while True:
     
     # Perform inference on an image
     results = model(frame)
-
+    
     # Extract bounding boxes
     boxes = results[0].boxes.xyxy.tolist()
-
+    
     # Extract conf
     confs = results[0].boxes.conf.tolist()
-
+    
     # Extract class
     classes = results[0].boxes.cls.tolist()
 
@@ -96,21 +96,10 @@ while True:
             print("전처리 실패")
             continue
 
-        try:
-        # Predict with CNN
-            with torch.no_grad():
-                output = cnn_model(input_tensor)
-                pred = torch.argmax(output, dim=1).item()
-
-        except:
-            print("추론 실패")
-            continue
-            
-        label = "정상" if pred == 0 else "손상"
-        color = (0, 255, 0) if pred == 0 else (0, 0, 255)
+        is_damaged = class[i]
 
         # 손상된 경우
-        if pred == 1:
+        if is_damaged == 'damaged_sign':
             try:
                 with torch.no_grad():
                     restored = unet_model(input_tensor)
@@ -120,16 +109,8 @@ while True:
                 restored_np = (restored_np * 255).clip(0, 255).astype("uint8")
                 restored_bgr = cv2.cvtColor(restored_np, cv2.COLOR_RGB2BGR)
 
-                # 복원된 이미지 저장
-                cv2.imwrite(f"restored_{frame_count}_{i}.jpg", restored_bgr)
             except:
                 continue
-
-        # 복원 후 재인식
-        try:
-            
-        except:
-            continue
     
     # Quit
     if cv2.waitKey(1) & 0xFF == ord('q'):
