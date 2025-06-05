@@ -76,6 +76,8 @@ while True:
             print("crop 실패")
             continue
 
+        # crop_object를 이미지로 변환
+        
         # bouding box의 클래스 
         is_damaged = class[i]
 
@@ -83,7 +85,7 @@ while True:
         if is_damaged == 'damaged_sign':
             try:
                 with torch.no_grad():
-                    restored = unet_model(input_tensor)
+                    restored = unet_model(crop_object)
                     
                 # 복원된 tensor를 이미지로 변환
                 restored_np = restored.squeeze(0).permute(1, 2, 0).numpy()
