@@ -84,10 +84,10 @@ while True:
         crop_image = Image.fromarray(cv2.cvtColor(crop_object, cv2.COLOR_BGR2RGB))
 
         # crop 이미지 전처리
-        transform = transforms.Compose(
+        transform = transforms.Compose([
             transforms.Resize((256,256)),   # 256,256으로 resize
             transforms.ToTensor()           # 텐서로 변환
-        )
+        ])
 
         # UNet에 입력하기위해 차원 하나 추가
         unet_input_image = transform(crop_image).unsqueeze(0)
