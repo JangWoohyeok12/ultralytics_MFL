@@ -11,7 +11,7 @@ model = YOLO('yolov8n.pt')
 
 
 # UNet 모델
-# unet_model =
+unet_model = mobilenetv3_small()
 
 # 최종 인식 모델
 # mobilenet_model = 
