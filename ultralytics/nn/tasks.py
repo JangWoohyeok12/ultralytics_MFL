@@ -129,6 +129,7 @@ class BaseModel(nn.Module):
         return self._predict_once(x, profile, visualize, embed)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
+        # predict_once 부분 수정
         """
         Perform a forward pass through the network.
 
